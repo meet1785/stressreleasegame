@@ -1,0 +1,82 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/BubbleSheetView.gd" id="1_bsview"]
+
+[node name="BubbleSheetView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bsview")
+
+[node name="Header" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 20.0
+offset_right = -40.0
+offset_bottom = 140.0
+grow_horizontal = 2
+theme_override_constants/separation = 10
+
+[node name="ComboLabel" type="Label" parent="Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Swipe or tap bubbles gently"
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="Header"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+max_value = 35.0
+show_percentage = false
+
+[node name="CountLabel" type="Label" parent="Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Tidy Progress: 0 / 35"
+horizontal_alignment = 1
+
+[node name="Board" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_top = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="Node2D" parent="Board"]
+
+[node name="BottomControls" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = -140.0
+offset_right = -60.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="FlipButton" type="Button" parent="BottomControls"]
+custom_minimum_size = Vector2(240, 70)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "✨ Refresh Sheet"
+
+[node name="ModeToggleButton" type="Button" parent="BottomControls"]
+custom_minimum_size = Vector2(240, 70)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Mode: Tidy Sheet"

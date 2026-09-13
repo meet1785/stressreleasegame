@@ -1,0 +1,150 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/BubbleSheetView.tscn" id="2_bsview"]
+[ext_resource type="PackedScene" path="res://scenes/ZenWipeView.tscn" id="3_zwview"]
+[ext_resource type="PackedScene" path="res://scenes/BreatheView.tscn" id="4_bvview"]
+[ext_resource type="PackedScene" path="res://scenes/DioramaView.tscn" id="5_dvview"]
+[ext_resource type="PackedScene" path="res://scenes/ShopView.tscn" id="6_sview"]
+[ext_resource type="PackedScene" path="res://scenes/DailyTasksView.tscn" id="7_dtview"]
+[ext_resource type="PackedScene" path="res://scenes/SettingsModal.tscn" id="8_smview"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.965, 0.96, 0.94, 1)
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 30.0
+offset_top = 20.0
+offset_right = -30.0
+offset_bottom = 90.0
+grow_horizontal = 2
+theme_override_constants/separation = 20
+
+[node name="GameTitle" type="Label" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 34
+text = "🌸 Gentle Tidy"
+vertical_alignment = 1
+
+[node name="RightBox" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="PointsBadge" type="Label" parent="TopBar/RightBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "✨ 0 pts"
+vertical_alignment = 1
+
+[node name="SettingsButton" type="Button" parent="TopBar/RightBox"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "⚙️"
+
+[node name="ViewsContainer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 100.0
+offset_bottom = -130.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BubbleSheetView" parent="ViewsContainer" instance=ExtResource("2_bsview")]
+layout_mode = 1
+
+[node name="ZenWipeView" parent="ViewsContainer" instance=ExtResource("3_zwview")]
+visible = false
+layout_mode = 1
+
+[node name="BreatheView" parent="ViewsContainer" instance=ExtResource("4_bvview")]
+visible = false
+layout_mode = 1
+
+[node name="DioramaView" parent="ViewsContainer" instance=ExtResource("5_dvview")]
+visible = false
+layout_mode = 1
+
+[node name="ShopView" parent="ViewsContainer" instance=ExtResource("6_sview")]
+visible = false
+layout_mode = 1
+
+[node name="DailyTasksView" parent="ViewsContainer" instance=ExtResource("7_dtview")]
+visible = false
+layout_mode = 1
+
+[node name="BottomNav" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="NavHBox" type="HBoxContainer" parent="BottomNav"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TabPop" type="Button" parent="BottomNav/NavHBox"]
+custom_minimum_size = Vector2(160, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🫧 Pop"
+
+[node name="TabClean" type="Button" parent="BottomNav/NavHBox"]
+custom_minimum_size = Vector2(160, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "✨ Clean"
+
+[node name="TabBreathe" type="Button" parent="BottomNav/NavHBox"]
+custom_minimum_size = Vector2(160, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🫁 Breathe"
+
+[node name="TabDiorama" type="Button" parent="BottomNav/NavHBox"]
+custom_minimum_size = Vector2(160, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🪴 Room"
+
+[node name="TabShop" type="Button" parent="BottomNav/NavHBox"]
+custom_minimum_size = Vector2(160, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🛍️ Shop"
+
+[node name="TabTasks" type="Button" parent="BottomNav/NavHBox"]
+custom_minimum_size = Vector2(160, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🎯 Goals"
+
+[node name="SettingsModal" parent="." instance=ExtResource("8_smview")]
+visible = false
+layout_mode = 1

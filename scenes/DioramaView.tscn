@@ -1,0 +1,79 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/DioramaView.gd" id="1_dvview"]
+[ext_resource type="Script" path="res://scripts/DioramaCanvas.gd" id="2_dcanvas"]
+
+[node name="DioramaView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dvview")
+
+[node name="Header" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 20.0
+offset_right = -40.0
+offset_bottom = 140.0
+grow_horizontal = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Cozy Zen Room"
+horizontal_alignment = 1
+
+[node name="CountLabel" type="Label" parent="Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Decorations: 0 / 12 Unlocked"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Visit the Zen Shop to unlock cozy decorations!"
+horizontal_alignment = 1
+
+[node name="CenterContainer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_top = -60.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DioramaCanvas" type="Node2D" parent="CenterContainer"]
+script = ExtResource("2_dcanvas")
+tile_width = 160.0
+tile_height = 80.0
+
+[node name="BottomControls" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = -140.0
+offset_right = -60.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="ShopShortcutButton" type="Button" parent="BottomControls"]
+custom_minimum_size = Vector2(260, 70)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "🛍️ Open Zen Shop"

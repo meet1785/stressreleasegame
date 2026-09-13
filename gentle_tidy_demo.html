@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🌸 Gentle Tidy — Stress Release Game</title>
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --card: #FFFFFF;
+    --accent: #F4A261;
+    --accent2: #E76F51;
+    --text: #2D3142;
+    --muted: #7D8597;
+    --green: #84A98C;
+    --blue: #A2D2FF;
+    --lavender: #CDB4DB;
+    --rose: #FFC8DD;
+    --shadow: rgba(0,0,0,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top Bar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #FDFCFB 0%, #E2D1C3 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar h1 { font-size: 22px; font-weight: 700; }
+  .topbar .pts {
+    background: var(--accent);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 15px;
+    transition: transform 0.2s;
+  }
+  .topbar .pts.pulse { animation: ptsPulse 0.4s ease; }
+  @keyframes ptsPulse { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
+
+  /* Bottom Navigation */
+  .bottomnav {
+    display: flex; justify-content: space-around;
+    background: var(--card);
+    border-top: 1px solid rgba(0,0,0,0.08);
+    padding: 8px 4px 14px;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    box-shadow: 0 -2px 12px var(--shadow);
+  }
+  .bottomnav button {
+    background: none; border: none; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 11px; color: var(--muted);
+    transition: color 0.2s, transform 0.15s;
+    padding: 4px 8px;
+  }
+  .bottomnav button .icon { font-size: 22px; }
+  .bottomnav button.active { color: var(--accent); font-weight: 700; }
+  .bottomnav button:active { transform: scale(0.92); }
+
+  /* Views Container */
+  .views { flex: 1; padding-bottom: 80px; }
+  .view { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Shared Components */
+  .section-title { text-align:center; font-size:24px; font-weight:700; margin:8px 0 4px; }
+  .section-sub { text-align:center; font-size:14px; color:var(--muted); margin-bottom:16px; }
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    padding: 12px 24px; border-radius: 14px; border: none;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: var(--card); color: var(--text); border: 1px solid #ddd; }
+  .progress-bar {
+    width: 100%; height: 14px; background: #E9ECEF; border-radius: 8px; overflow: hidden; margin: 8px 0;
+  }
+  .progress-bar .fill {
+    height: 100%; border-radius: 8px;
+    background: linear-gradient(90deg, var(--green), var(--accent));
+    transition: width 0.3s ease;
+  }
+
+  /* ===== BUBBLE SHEET VIEW ===== */
+  .bubble-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    max-width: 420px;
+    margin: 0 auto 16px;
+  }
+  .bubble {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.08s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .bubble .dome {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    position: relative;
+    transition: transform 0.15s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
+  }
+  .bubble:not(.popped) .dome {
+    background: radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.85) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, var(--bcolor) 0%, var(--bcolor-dark) 100%);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -3px 6px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.6);
+  }
+  .bubble.popped .dome {
+    background: radial-gradient(ellipse at 50% 60%, var(--bcolor-dark) 0%, var(--bcolor-darker) 100%);
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.25), inset 0 -1px 3px rgba(255,255,255,0.15);
+    transform: scale(0.88);
+  }
+  .bubble:not(.popped):hover .dome { transform: scale(1.06); }
+  .bubble:not(.popped):active .dome { transform: scale(0.85); }
+  .bubble .particles {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .particle {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    animation: particleBurst 0.5s ease-out forwards;
+  }
+  @keyframes particleBurst {
+    0% { transform: translate(0,0) scale(1); opacity: 0.9; }
+    100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
+  }
+  .bubble-controls {
+    display: flex; gap: 12px; justify-content: center; margin-top: 12px; flex-wrap: wrap;
+  }
+  .combo-badge {
+    text-align: center; font-size: 18px; font-weight: 700; margin: 8px 0;
+    color: var(--muted); transition: color 0.2s, transform 0.15s;
+  }
+  .combo-badge.active { color: var(--accent); animation: comboBounce 0.3s ease; }
+  @keyframes comboBounce { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+
+  /* ===== WIPE VIEW ===== */
+  .wipe-canvas-container {
+    display: flex; justify-content: center; margin: 8px 0;
+  }
+  #wipeCanvas {
+    border-radius: 20px;
+    box-shadow: 0 4px 20px var(--shadow);
+    cursor: crosshair;
+    touch-action: none;
+    max-width: 100%;
+  }
+
+  /* ===== BREATHE VIEW ===== */
+  .breathe-container {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  #breatheCanvas {
+    border-radius: 20px;
+    max-width: 100%;
+  }
+  .breathe-phase {
+    font-size: 36px; font-weight: 700;
+    transition: color 0.5s;
+  }
+  .breathe-instruction {
+    font-size: 16px; color: var(--muted); text-align: center; max-width: 300px;
+  }
+
+  /* ===== DIORAMA VIEW ===== */
+  .diorama-room {
+    display: flex; justify-content: center; margin: 8px 0;
+  }
+  #dioramaCanvas {
+    border-radius: 20px;
+    box-shadow: 0 4px 20px var(--shadow);
+    max-width: 100%;
+  }
+
+  /* ===== SHOP VIEW ===== */
+  .shop-list { display: flex; flex-direction: column; gap: 12px; max-width: 600px; margin: 0 auto; }
+  .shop-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 10px var(--shadow);
+    transition: transform 0.15s;
+  }
+  .shop-card:hover { transform: translateY(-2px); }
+  .shop-icon {
+    width: 64px; height: 64px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; flex-shrink: 0;
+  }
+  .shop-info { flex: 1; }
+  .shop-info .name { font-weight: 700; font-size: 16px; }
+  .shop-info .desc { font-size: 13px; color: var(--muted); margin: 2px 0; }
+  .shop-info .cost { font-size: 13px; color: var(--accent); font-weight: 600; }
+  .shop-card .btn { font-size: 13px; padding: 8px 16px; white-space: nowrap; }
+  .shop-card .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ===== TASKS VIEW ===== */
+  .tasks-list { display: flex; flex-direction: column; gap: 12px; max-width: 600px; margin: 0 auto; }
+  .task-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 10px var(--shadow);
+  }
+  .task-icon { font-size: 32px; flex-shrink: 0; }
+  .task-info { flex: 1; }
+  .task-info .tname { font-weight: 700; font-size: 15px; }
+  .task-info .tdesc { font-size: 13px; color: var(--muted); margin: 2px 0; }
+  .task-card .btn { font-size: 13px; padding: 8px 14px; white-space: nowrap; }
+
+  /* ===== SETTINGS VIEW ===== */
+  .settings-group {
+    max-width: 500px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .setting-row {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .setting-row label { font-size: 16px; font-weight: 600; }
+  .toggle {
+    width: 52px; height: 28px;
+    background: #ccc; border-radius: 14px;
+    position: relative; cursor: pointer;
+    transition: background 0.3s;
+  }
+  .toggle.on { background: var(--green); }
+  .toggle::after {
+    content: '';
+    width: 22px; height: 22px;
+    background: #fff; border-radius: 50%;
+    position: absolute; top: 3px; left: 3px;
+    transition: left 0.3s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle.on::after { left: 27px; }
+
+  /* Celebration overlay */
+  .celebration {
+    position: fixed; inset: 0; pointer-events: none; z-index: 200;
+  }
+  .confetti-piece {
+    position: absolute;
+    width: 8px; height: 12px;
+    border-radius: 2px;
+    animation: confettiFall 1.5s ease-out forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity:1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .bubble-grid { gap: 6px; }
+    .topbar h1 { font-size: 18px; }
+    .section-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <h1>🌸 Gentle Tidy</h1>
+  <div class="pts" id="pointsBadge">✨ 0 pts</div>
+</div>
+
+<!-- Views Container -->
+<div class="views">
+  <!-- 1. BUBBLE SHEET VIEW -->
+  <div class="view active" id="viewPop">
+    <div class="section-title">🫧 ASMR Bubble Wrap</div>
+    <div class="combo-badge" id="comboBadge">Tap or swipe bubbles gently</div>
+    <div class="progress-bar"><div class="fill" id="popProgress" style="width:0%"></div></div>
+    <div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:8px" id="popCount">0 / 35 popped</div>
+    <div class="bubble-grid" id="bubbleGrid"></div>
+    <div class="bubble-controls">
+      <button class="btn btn-primary" onclick="flipSheet()">✨ Refresh Sheet</button>
+      <button class="btn btn-secondary" id="modeBtn" onclick="toggleMode()">Mode: Tidy Sheet</button>
+    </div>
+  </div>
+
+  <!-- 2. WIPE VIEW -->
+  <div class="view" id="viewClean">
+    <div class="section-title">✨ Zen Surface Polish</div>
+    <div class="section-sub" id="surfaceName">Cozy Oak Tea Table</div>
+    <div class="progress-bar"><div class="fill" id="wipeProgress" style="width:0%"></div></div>
+    <div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:8px" id="wipePercent">0% Clean</div>
+    <div class="wipe-canvas-container">
+      <canvas id="wipeCanvas" width="380" height="380"></canvas>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:12px">
+      <button class="btn btn-secondary" onclick="resetWipe()">↺ Dust Again</button>
+      <button class="btn btn-primary" onclick="nextSurface()">Next Surface →</button>
+    </div>
+  </div>
+
+  <!-- 3. BREATHE VIEW -->
+  <div class="view" id="viewBreathe">
+    <div class="section-title">🫁 Mindful Breathing</div>
+    <div class="breathe-container">
+      <div class="breathe-phase" id="breathePhase">Inhale</div>
+      <div class="breathe-instruction" id="breatheInstruction">Breathe in deeply... fill your chest with calm</div>
+      <canvas id="breatheCanvas" width="340" height="340"></canvas>
+      <div style="font-size:14px;color:var(--muted)" id="breatheCounter">Mindful Breaths: 0 (+10 pts each)</div>
+      <button class="btn btn-secondary" id="breatheToggle" onclick="toggleBreathe()">Pause Breath</button>
+    </div>
+  </div>
+
+  <!-- 4. DIORAMA VIEW -->
+  <div class="view" id="viewRoom">
+    <div class="section-title">🪴 Cozy Zen Room</div>
+    <div class="section-sub" id="roomCount">Decorations: 0 / 12 Unlocked</div>
+    <div class="diorama-room">
+      <canvas id="dioramaCanvas" width="460" height="360"></canvas>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <button class="btn btn-primary" onclick="switchTab(4)">🛍️ Open Zen Shop</button>
+    </div>
+  </div>
+
+  <!-- 5. SHOP VIEW -->
+  <div class="view" id="viewShop">
+    <div class="section-title">🛍️ Zen Catalog</div>
+    <div class="section-sub" id="shopPoints">Your Satisfaction: 0 Points</div>
+    <div class="shop-list" id="shopList"></div>
+  </div>
+
+  <!-- 6. TASKS VIEW -->
+  <div class="view" id="viewTasks">
+    <div class="section-title">🎯 Daily Mindful Goals</div>
+    <div class="section-sub" id="tasksPoints">Your Satisfaction: 0 Points</div>
+    <div class="tasks-list" id="tasksList"></div>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottomnav">
+  <button class="active" onclick="switchTab(0)"><span class="icon">🫧</span>Pop</button>
+  <button onclick="switchTab(1)"><span class="icon">✨</span>Clean</button>
+  <button onclick="switchTab(2)"><span class="icon">🫁</span>Breathe</button>
+  <button onclick="switchTab(3)"><span class="icon">🪴</span>Room</button>
+  <button onclick="switchTab(4)"><span class="icon">🛍️</span>Shop</button>
+  <button onclick="switchTab(5)"><span class="icon">🎯</span>Goals</button>
+</div>
+
+<!-- Celebration overlay -->
+<div class="celebration" id="celebration"></div>
+
+<script>
+// ============================================================
+// GAME STATE
+// ============================================================
+const state = {
+  points: 0,
+  bubbles: [],
+  combo: 0,
+  comboTimer: null,
+  endlessMode: false,
+  totalPopped: 0,
+  sheetsCleared: 0,
+  surfacesCleaned: 0,
+  breathCycles: 0,
+  unlockedItems: [],
+  taskProgress: {},
+  claimedTasks: [],
+  sfxEnabled: true,
+  hapticsEnabled: true,
+};
+
+// ============================================================
+// AUDIO ENGINE (Web Audio API procedural synthesis)
+// ============================================================
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playPop(pitch = 1.0) {
+  if (!state.sfxEnabled) return;
+  ensureAudio();
+  const ctx = audioCtx;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(720 * pitch, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(90 * pitch, ctx.currentTime + 0.12);
+  gain.gain.setValueAtTime(0.35, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(); osc.stop(ctx.currentTime + 0.13);
+}
+
+function playChime(note = 0) {
+  if (!state.sfxEnabled) return;
+  ensureAudio();
+  const freqs = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+  const f = freqs[note % freqs.length];
+  const ctx = audioCtx;
+  const osc = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine'; osc.frequency.value = f;
+  osc2.type = 'sine'; osc2.frequency.value = f * 2;
+  const merge = ctx.createGain(); merge.gain.value = 0.3;
+  osc.connect(gain);
+  osc2.connect(merge).connect(gain);
+  gain.gain.setValueAtTime(0.25, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+  gain.connect(ctx.destination);
+  osc.start(); osc.stop(ctx.currentTime + 0.6);
+  osc2.start(); osc2.stop(ctx.currentTime + 0.6);
+}
+
+function playWhoosh() {
+  if (!state.sfxEnabled) return;
+  ensureAudio();
+  const ctx = audioCtx;
+  const bufferSize = ctx.sampleRate * 0.22;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < bufferSize; i++) {
+    const t = i / ctx.sampleRate;
+    const env = Math.sin(t / 0.22 * Math.PI);
+    const white = Math.random() * 2 - 1;
+    last = last * 0.88 + white * 0.12;
+    data[i] = last * env * 0.5;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.4;
+  src.connect(gain).connect(ctx.destination);
+  src.start();
+}
+
+function playBowl() {
+  if (!state.sfxEnabled) return;
+  ensureAudio();
+  const ctx = audioCtx;
+  const osc1 = ctx.createOscillator(); osc1.frequency.value = 220;
+  const osc2 = ctx.createOscillator(); osc2.frequency.value = 440;
+  const osc3 = ctx.createOscillator(); osc3.frequency.value = 660;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.1);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+  const g2 = ctx.createGain(); g2.gain.value = 0.3;
+  const g3 = ctx.createGain(); g3.gain.value = 0.12;
+  osc1.connect(gain);
+  osc2.connect(g2).connect(gain);
+  osc3.connect(g3).connect(gain);
+  gain.connect(ctx.destination);
+  [osc1,osc2,osc3].forEach(o=>{o.start();o.stop(ctx.currentTime+1.8)});
+}
+
+function playSparkle() {
+  if (!state.sfxEnabled) return;
+  ensureAudio();
+  const ctx = audioCtx;
+  for (let i = 0; i < 3; i++) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.setValueAtTime(1200 + i * 400, ctx.currentTime + i * 0.08);
+    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + i * 0.08 + 0.3);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.35);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(ctx.currentTime + i * 0.08);
+    osc.stop(ctx.currentTime + i * 0.08 + 0.36);
+  }
+}
+
+function playClick() {
+  if (!state.sfxEnabled) return;
+  ensureAudio();
+  const ctx = audioCtx;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.frequency.value = 880;
+  gain.gain.setValueAtTime(0.2, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(); osc.stop(ctx.currentTime + 0.05);
+}
+
+// ============================================================
+// POINTS & UI
+// ============================================================
+function addPoints(n) {
+  if (n <= 0) return;
+  state.points += n;
+  updatePointsUI();
+}
+function spendPoints(n) {
+  if (state.points < n) return false;
+  state.points -= n;
+  updatePointsUI();
+  return true;
+}
+function updatePointsUI() {
+  const badge = document.getElementById('pointsBadge');
+  badge.textContent = `✨ ${state.points} pts`;
+  badge.classList.remove('pulse');
+  void badge.offsetWidth;
+  badge.classList.add('pulse');
+  document.getElementById('shopPoints').textContent = `Your Satisfaction: ${state.points} Points`;
+  document.getElementById('tasksPoints').textContent = `Your Satisfaction: ${state.points} Points`;
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const viewIds = ['viewPop','viewClean','viewBreathe','viewRoom','viewShop','viewTasks'];
+let currentTab = 0;
+function switchTab(i) {
+  playClick();
+  currentTab = i;
+  viewIds.forEach((id, idx) => {
+    document.getElementById(id).classList.toggle('active', idx === i);
+  });
+  document.querySelectorAll('.bottomnav button').forEach((btn, idx) => {
+    btn.classList.toggle('active', idx === i);
+  });
+  if (i === 3) drawDiorama();
+  if (i === 4) buildShop();
+  if (i === 5) buildTasks();
+}
+
+// ============================================================
+// 1. BUBBLE SHEET
+// ============================================================
+const PASTEL_PALETTES = [
+  {c:'#99C1DE',d:'#7BAAC9',dd:'#5E8FB0'},
+  {c:'#BCE784',d:'#A4D066',dd:'#8AB954'},
+  {c:'#F4A261',d:'#E08B48',dd:'#C87636'},
+  {c:'#E0AAFF',d:'#C88AE8',dd:'#B070D0'},
+  {c:'#FFCAD4',d:'#EAAFB8',dd:'#D4959F'},
+  {c:'#F3D27C',d:'#E0BD60',dd:'#C9A748'},
+  {c:'#80CED7',d:'#64B5BF',dd:'#4C9DA6'},
+];
+
+function initBubbleSheet() {
+  const grid = document.getElementById('bubbleGrid');
+  grid.innerHTML = '';
+  state.bubbles = [];
+  for (let r = 0; r < 7; r++) {
+    const palette = PASTEL_PALETTES[r % PASTEL_PALETTES.length];
+    for (let c = 0; c < 5; c++) {
+      const idx = r * 5 + c;
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.style.setProperty('--bcolor', palette.c);
+      bubble.style.setProperty('--bcolor-dark', palette.d);
+      bubble.style.setProperty('--bcolor-darker', palette.dd);
+      bubble.innerHTML = '<div class="dome"></div><div class="particles"></div>';
+      bubble.dataset.idx = idx;
+
+      // Events
+      bubble.addEventListener('pointerdown', (e) => { e.preventDefault(); popBubble(idx); });
+      bubble.addEventListener('pointerenter', (e) => {
+        if (e.buttons > 0) popBubble(idx); // drag-to-pop
+      });
+
+      grid.appendChild(bubble);
+      state.bubbles.push({ popped: false, el: bubble, palette });
+    }
+  }
+  updatePopUI();
+}
+
+function popBubble(idx) {
+  const b = state.bubbles[idx];
+  if (!b || b.popped) return;
+  b.popped = true;
+  b.el.classList.add('popped');
+  state.totalPopped++;
+
+  // Combo
+  state.combo++;
+  clearTimeout(state.comboTimer);
+  state.comboTimer = setTimeout(() => { state.combo = 0; updateComboUI(); }, 1000);
+
+  // Audio
+  playPop(0.9 + Math.random() * 0.3);
+  if (state.combo > 1) playChime((state.combo - 1) % 6);
+
+  // Haptics
+  if (state.hapticsEnabled && navigator.vibrate) navigator.vibrate(25);
+
+  // Particles
+  spawnParticles(b.el, b.palette.c);
+
+  // Points
+  addPoints(1);
+  incrementTask('pop_25', 1);
+  incrementTask('pop_100', 1);
+
+  updatePopUI();
+  updateComboUI();
+
+  // Check full sheet
+  const popped = state.bubbles.filter(x => x.popped).length;
+  if (popped >= 35) {
+    state.sheetsCleared++;
+    incrementTask('clear_sheet', 1);
+    addPoints(15);
+    playSparkle();
+    showCelebration();
+    const badge = document.getElementById('comboBadge');
+    badge.textContent = '✨ Sheet Cleared! +15 Bonus! ✨';
+    badge.classList.add('active');
+  }
+}
+
+function spawnParticles(el, color) {
+  const cont = el.querySelector('.particles');
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (Math.PI * 2 / 8) * i + (Math.random() - 0.5) * 0.6;
+    const dist = 30 + Math.random() * 30;
+    p.style.cssText = `
+      left:50%;top:50%;
+      background:${color};
+      --px:${Math.cos(angle)*dist}px;
+      --py:${Math.sin(angle)*dist}px;
+      width:${5+Math.random()*4}px;
+      height:${5+Math.random()*4}px;
+    `;
+    cont.appendChild(p);
+    setTimeout(() => p.remove(), 500);
+  }
+}
+
+function flipSheet() {
+  playWhoosh();
+  state.combo = 0;
+  updateComboUI();
+  state.bubbles.forEach((b, i) => {
+    setTimeout(() => {
+      b.popped = false;
+      b.el.classList.remove('popped');
+      b.el.querySelector('.dome').style.transform = '';
+      if (i % 5 === 0) playPop(1.2 + (i % 5) * 0.1);
+    }, i * 15);
+  });
+  setTimeout(updatePopUI, state.bubbles.length * 15 + 50);
+}
+
+function toggleMode() {
+  state.endlessMode = !state.endlessMode;
+  document.getElementById('modeBtn').textContent = state.endlessMode ? 'Mode: Endless Pop' : 'Mode: Tidy Sheet';
+  if (state.endlessMode) {
+    // Auto reinflate popped bubbles after 2s
+    setInterval(() => {
+      if (!state.endlessMode) return;
+      state.bubbles.forEach(b => {
+        if (b.popped) {
+          b.popped = false;
+          b.el.classList.remove('popped');
+        }
+      });
+      updatePopUI();
+    }, 2500);
+  }
+}
+
+function updatePopUI() {
+  const popped = state.bubbles.filter(x => x.popped).length;
+  document.getElementById('popProgress').style.width = (popped / 35 * 100) + '%';
+  document.getElementById('popCount').textContent = `${popped} / 35 popped`;
+}
+
+function updateComboUI() {
+  const badge = document.getElementById('comboBadge');
+  if (state.combo <= 1) {
+    badge.textContent = 'Tap or swipe bubbles gently';
+    badge.classList.remove('active');
+  } else {
+    const m = Math.min(5, state.combo);
+    const q = state.combo < 5 ? 'Soothing!' : (state.combo < 10 ? 'Serene!' : 'Deep Zen!');
+    badge.textContent = `🔥 ${m}x Combo! ${q}`;
+    badge.classList.add('active');
+  }
+}
+
+// ============================================================
+// 2. ZEN WIPE
+// ============================================================
+const SURFACES = [
+  { name:'Cozy Oak Tea Table', color:'#BC8A5F', shape:'circle' },
+  { name:'Vintage Brass Mirror', color:'#D4AF37', shape:'oval' },
+  { name:'Steamy Rainy Window', color:'#8ECAE6', shape:'rect' },
+];
+let wipeSurfaceIdx = 0;
+let dustGrid = [];
+const WIPE_GRID = 16;
+let wipeDragging = false;
+let wipeCompleted = false;
+
+function initWipe() {
+  const canvas = document.getElementById('wipeCanvas');
+  canvas.addEventListener('pointerdown', (e) => { wipeDragging = true; wipeAt(e); });
+  canvas.addEventListener('pointermove', (e) => { if(wipeDragging) wipeAt(e); });
+  canvas.addEventListener('pointerup', () => wipeDragging = false);
+  canvas.addEventListener('pointerleave', () => wipeDragging = false);
+  loadSurface(0);
+}
+
+function loadSurface(idx) {
+  wipeSurfaceIdx = idx % SURFACES.length;
+  wipeCompleted = false;
+  dustGrid = [];
+  const s = SURFACES[wipeSurfaceIdx];
+  document.getElementById('surfaceName').textContent = s.name;
+  for (let r = 0; r < WIPE_GRID; r++) {
+    for (let c = 0; c < WIPE_GRID; c++) {
+      const cx = (c + 0.5) / WIPE_GRID;
+      const cy = (r + 0.5) / WIPE_GRID;
+      const dx = cx - 0.5, dy = cy - 0.5;
+      let inside = false;
+      if (s.shape === 'circle') inside = Math.sqrt(dx*dx+dy*dy) < 0.44;
+      else if (s.shape === 'oval') inside = (dx*dx)/(0.38*0.38) + (dy*dy)/(0.44*0.44) < 1;
+      else inside = Math.abs(dx) < 0.44 && Math.abs(dy) < 0.44;
+      dustGrid.push(inside);
+    }
+  }
+  drawWipe();
+  updateWipeUI();
+}
+
+function wipeAt(e) {
+  if (wipeCompleted) return;
+  const canvas = document.getElementById('wipeCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+  const radius = 0.12;
+  let wiped = false;
+  for (let r = 0; r < WIPE_GRID; r++) {
+    for (let c = 0; c < WIPE_GRID; c++) {
+      const idx = r * WIPE_GRID + c;
+      if (!dustGrid[idx]) continue;
+      const cx = (c + 0.5) / WIPE_GRID;
+      const cy = (r + 0.5) / WIPE_GRID;
+      if (Math.hypot(cx - x, cy - y) < radius) {
+        dustGrid[idx] = false;
+        wiped = true;
+      }
+    }
+  }
+  if (wiped) {
+    playWhoosh();
+    drawWipe();
+    updateWipeUI();
+    const total = dustGrid.length;
+    const dusty = dustGrid.filter(d => d).length;
+    const totalDust = dustGrid.reduce((a, d, i) => a + (SURFACES[wipeSurfaceIdx].shape === 'circle' ?
+      (Math.hypot((i%WIPE_GRID+0.5)/WIPE_GRID-0.5, (Math.floor(i/WIPE_GRID)+0.5)/WIPE_GRID-0.5) < 0.44 ? 1 : 0) : 1), 0);
+    // simpler: count original dust cells
+    if (dusty === 0 || dusty / dustGrid.filter((_,i) => {
+      const cx = (i%WIPE_GRID+0.5)/WIPE_GRID-0.5, cy = (Math.floor(i/WIPE_GRID)+0.5)/WIPE_GRID-0.5;
+      const s = SURFACES[wipeSurfaceIdx];
+      if (s.shape==='circle') return Math.sqrt(cx*cx+cy*cy)<0.44;
+      if (s.shape==='oval') return (cx*cx)/(0.38*0.38)+(cy*cy)/(0.44*0.44)<1;
+      return Math.abs(cx)<0.44&&Math.abs(cy)<0.44;
+    }).length < 0.06) {
+      completeWipe();
+    }
+  }
+}
+
+function completeWipe() {
+  wipeCompleted = true;
+  dustGrid = dustGrid.map(() => false);
+  state.surfacesCleaned++;
+  incrementTask('wipe_surface', 1);
+  addPoints(20);
+  playSparkle();
+  showCelebration();
+  drawWipe();
+  updateWipeUI();
+  document.getElementById('surfaceName').textContent = '✨ Sparkling Clean! +20 pts! ✨';
+}
+
+function drawWipe() {
+  const canvas = document.getElementById('wipeCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const s = SURFACES[wipeSurfaceIdx];
+
+  // Draw surface
+  ctx.save();
+  if (s.shape === 'circle') {
+    ctx.beginPath(); ctx.arc(W/2, H/2, W*0.44, 0, Math.PI*2); ctx.closePath();
+  } else if (s.shape === 'oval') {
+    ctx.beginPath(); ctx.ellipse(W/2, H/2, W*0.38, H*0.44, 0, 0, Math.PI*2); ctx.closePath();
+  } else {
+    ctx.beginPath(); ctx.rect(W*0.06, H*0.06, W*0.88, H*0.88); ctx.closePath();
+  }
+  ctx.fillStyle = s.color;
+  ctx.fill();
+
+  // Reflection gradient
+  const rg = ctx.createRadialGradient(W*0.35, H*0.35, 0, W*0.5, H*0.5, W*0.45);
+  rg.addColorStop(0, 'rgba(255,255,255,0.3)');
+  rg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = rg;
+  ctx.fill();
+  ctx.restore();
+
+  // Draw window cross
+  if (s.shape === 'rect') {
+    ctx.strokeStyle = '#415A77'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(W/2, H*0.06); ctx.lineTo(W/2, H*0.94); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W*0.06, H/2); ctx.lineTo(W*0.94, H/2); ctx.stroke();
+  }
+
+  // Draw dust
+  const cellW = W / WIPE_GRID, cellH = H / WIPE_GRID;
+  for (let r = 0; r < WIPE_GRID; r++) {
+    for (let c = 0; c < WIPE_GRID; c++) {
+      if (!dustGrid[r * WIPE_GRID + c]) continue;
+      const cx = (c + 0.5) * cellW, cy = (r + 0.5) * cellH;
+      ctx.beginPath();
+      ctx.arc(cx, cy, cellW * 0.55, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(220,220,220,0.7)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx + 2, cy + 2, cellW * 0.3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200,200,200,0.5)';
+      ctx.fill();
+    }
+  }
+}
+
+function updateWipeUI() {
+  const origDust = dustGrid.reduce((a, d, i) => {
+    const cx = (i%WIPE_GRID+0.5)/WIPE_GRID-0.5, cy = (Math.floor(i/WIPE_GRID)+0.5)/WIPE_GRID-0.5;
+    const s = SURFACES[wipeSurfaceIdx];
+    if (s.shape==='circle') return a + (Math.sqrt(cx*cx+cy*cy)<0.44?1:0);
+    if (s.shape==='oval') return a + ((cx*cx)/(0.38*0.38)+(cy*cy)/(0.44*0.44)<1?1:0);
+    return a + (Math.abs(cx)<0.44&&Math.abs(cy)<0.44?1:0);
+  }, 0);
+  const remaining = dustGrid.filter(d => d).length;
+  const pct = origDust > 0 ? Math.round((1 - remaining / origDust) * 100) : 100;
+  document.getElementById('wipeProgress').style.width = pct + '%';
+  document.getElementById('wipePercent').textContent = pct + '% Clean';
+}
+
+function resetWipe() { playClick(); loadSurface(wipeSurfaceIdx); }
+function nextSurface() { playClick(); loadSurface(wipeSurfaceIdx + 1); }
+
+// ============================================================
+// 3. MINDFUL BREATHING
+// ============================================================
+const BREATH_PHASES = ['Inhale','Hold','Exhale','Rest'];
+const BREATH_COLORS = ['#A2D2FF','#BDE0FE','#CDB4DB','#FFC8DD'];
+const BREATH_INSTRUCTIONS = [
+  'Breathe in deeply... fill your chest with calm',
+  'Pause gently... notice the stillness',
+  'Breathe out softly... let all tension drift away',
+  'Rest at ease... you are safe and grounded'
+];
+let breathePhaseIdx = 0;
+let breatheTime = 0;
+let breatheRunning = true;
+let breatheAnimId = null;
+let breatheLastTime = 0;
+
+function initBreathe() {
+  breatheLastTime = performance.now();
+  animateBreathe(performance.now());
+}
+
+function animateBreathe(now) {
+  breatheAnimId = requestAnimationFrame(animateBreathe);
+  const dt = (now - breatheLastTime) / 1000;
+  breatheLastTime = now;
+  if (!breatheRunning) return;
+
+  breatheTime += dt;
+  const progress = Math.min(breatheTime / 4.0, 1.0);
+
+  // Calculate radius
+  const MIN_R = 50, MAX_R = 130;
+  let radius;
+  switch(breathePhaseIdx) {
+    case 0: radius = MIN_R + (MAX_R - MIN_R) * (1 - Math.cos(progress * Math.PI)) * 0.5; break;
+    case 1: radius = MAX_R + Math.sin(progress * Math.PI * 4) * 3; break;
+    case 2: radius = MAX_R - (MAX_R - MIN_R) * (1 - Math.cos(progress * Math.PI)) * 0.5; break;
+    case 3: radius = MIN_R + Math.sin(progress * Math.PI * 4) * 2; break;
+    default: radius = MIN_R;
+  }
+
+  drawBreathe(radius);
+
+  if (breatheTime >= 4.0) {
+    breatheTime = 0;
+    breathePhaseIdx = (breathePhaseIdx + 1) % 4;
+    document.getElementById('breathePhase').textContent = BREATH_PHASES[breathePhaseIdx];
+    document.getElementById('breathePhase').style.color = BREATH_COLORS[breathePhaseIdx];
+    document.getElementById('breatheInstruction').textContent = BREATH_INSTRUCTIONS[breathePhaseIdx];
+
+    if (breathePhaseIdx === 0) {
+      playBowl();
+      // Completed a cycle
+      state.breathCycles++;
+      incrementTask('breathe_2', 1);
+      addPoints(10);
+      playChime(2);
+      document.getElementById('breatheCounter').textContent = `Mindful Breaths: ${state.breathCycles} (+10 pts each)`;
+    } else if (breathePhaseIdx === 2) {
+      playWhoosh();
+    }
+  }
+}
+
+function drawBreathe(radius) {
+  const canvas = document.getElementById('breatheCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  ctx.clearRect(0, 0, W, H);
+  const col = BREATH_COLORS[breathePhaseIdx];
+
+  // Ripple rings
+  for (let i = 3; i >= 1; i--) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius + i * 20, 0, Math.PI * 2);
+    ctx.fillStyle = col + Math.round(20 / i).toString(16).padStart(2,'0');
+    ctx.fill();
+  }
+
+  // Main sphere
+  const rg = ctx.createRadialGradient(cx - radius*0.2, cy - radius*0.2, 0, cx, cy, radius);
+  rg.addColorStop(0, '#FFFFFF');
+  rg.addColorStop(0.4, col);
+  rg.addColorStop(1, col + '99');
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fillStyle = rg;
+  ctx.fill();
+
+  // Inner highlight
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.35, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fill();
+}
+
+function toggleBreathe() {
+  breatheRunning = !breatheRunning;
+  document.getElementById('breatheToggle').textContent = breatheRunning ? 'Pause Breath' : 'Resume Breath';
+  playClick();
+}
+
+// ============================================================
+// 4. DIORAMA ROOM
+// ============================================================
+const DIORAMA_CATALOG = [
+  { id:'succulent_plant', name:'Cozy Succulent', icon:'🪴', cost:50, color:'#76A07E' },
+  { id:'aromatherapy_candle', name:'Lavender Candle', icon:'🕯️', cost:80, color:'#E6AF82' },
+  { id:'cozy_tea_cup', name:'Chamomile Tea', icon:'🍵', cost:120, color:'#E2C391' },
+  { id:'sleeping_cat', name:'Mochi the Cat', icon:'🐱', cost:200, color:'#D9C3B0' },
+  { id:'fairy_lights', name:'Warm Fairy Lights', icon:'✨', cost:250, color:'#F3D27C' },
+  { id:'stack_of_books', name:'Quiet Novels', icon:'📚', cost:300, color:'#A680B8' },
+  { id:'bonsai_tree', name:'Zen Juniper', icon:'🌳', cost:400, color:'#588157' },
+  { id:'record_player', name:'Vintage Turntable', icon:'🎵', cost:500, color:'#BD7B55' },
+  { id:'warm_floor_lamp', name:'Amber Floor Lamp', icon:'💡', cost:650, color:'#E0A96D' },
+  { id:'plush_cushion', name:'Velvet Beanbag', icon:'🛋️', cost:800, color:'#84A98C' },
+  { id:'crystal_geode', name:'Amethyst Cluster', icon:'💎', cost:1000, color:'#9B5DE5' },
+  { id:'herbal_terrarium', name:'Mossy Terrarium', icon:'🔮', cost:1250, color:'#4895EF' },
+];
+
+let dioramaAnimTime = 0;
+let dioramaAnimId = null;
+
+function drawDiorama() {
+  const canvas = document.getElementById('dioramaCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  dioramaAnimTime += 0.02;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Warm floor background
+  ctx.fillStyle = '#F5EBE0';
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw isometric floor tiles
+  const cols = 4, rows = 3;
+  const tileW = 100, tileH = 50;
+  const startX = W / 2, startY = 80;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const isoX = startX + (c - r) * (tileW / 2);
+      const isoY = startY + (c + r) * (tileH / 2);
+      const idx = r * cols + c;
+
+      // Diamond
+      ctx.beginPath();
+      ctx.moveTo(isoX, isoY - tileH * 0.45);
+      ctx.lineTo(isoX + tileW * 0.45, isoY);
+      ctx.lineTo(isoX, isoY + tileH * 0.45);
+      ctx.lineTo(isoX - tileW * 0.45, isoY);
+      ctx.closePath();
+      ctx.fillStyle = (c + r) % 2 === 0 ? '#EBDCC9' : '#DFCEB9';
+      ctx.fill();
+      ctx.strokeStyle = '#C4B19A';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Place item or empty indicator
+      if (idx < state.unlockedItems.length) {
+        const item = DIORAMA_CATALOG.find(x => x.id === state.unlockedItems[idx]);
+        if (item) {
+          ctx.font = '28px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const bob = Math.sin(dioramaAnimTime * 2 + idx) * 3;
+          ctx.fillText(item.icon, isoX, isoY - 8 + bob);
+          ctx.font = '9px sans-serif';
+          ctx.fillStyle = '#666';
+          ctx.fillText(item.name, isoX, isoY + 16);
+        }
+      } else if (idx < 12) {
+        // Empty slot indicator
+        ctx.beginPath();
+        ctx.arc(isoX, isoY, 12, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(160,150,140,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  // Floating dust motes
+  for (let i = 0; i < 8; i++) {
+    const x = (Math.sin(dioramaAnimTime * 0.3 + i * 2) * 0.5 + 0.5) * W;
+    const y = (Math.cos(dioramaAnimTime * 0.2 + i * 1.5) * 0.5 + 0.5) * H;
+    const alpha = 0.2 + Math.sin(dioramaAnimTime + i) * 0.1;
+    ctx.beginPath();
+    ctx.arc(x, y, 2 + Math.sin(dioramaAnimTime + i) * 1, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,240,200,${alpha})`;
+    ctx.fill();
+  }
+
+  document.getElementById('roomCount').textContent = `Decorations: ${state.unlockedItems.length} / 12 Unlocked`;
+}
+
+// Animate diorama continuously when visible
+function animDiorama() {
+  if (currentTab === 3) drawDiorama();
+  requestAnimationFrame(animDiorama);
+}
+
+// ============================================================
+// 5. SHOP
+// ============================================================
+function buildShop() {
+  const list = document.getElementById('shopList');
+  list.innerHTML = '';
+  DIORAMA_CATALOG.forEach(item => {
+    const owned = state.unlockedItems.includes(item.id);
+    const canAfford = state.points >= item.cost;
+    const card = document.createElement('div');
+    card.className = 'shop-card';
+    card.innerHTML = `
+      <div class="shop-icon" style="background:${item.color}22">${item.icon}</div>
+      <div class="shop-info">
+        <div class="name">${item.name}</div>
+        <div class="desc">${getItemDesc(item.id)}</div>
+        <div class="cost">Cost: ${item.cost} pts</div>
+      </div>
+      <button class="btn ${owned ? 'btn-secondary' : 'btn-primary'}"
+        ${owned || !canAfford ? 'disabled' : ''}
+        onclick="buyItem('${item.id}')">
+        ${owned ? '✓ In Room' : (canAfford ? `Unlock (${item.cost})` : `Need ${item.cost - state.points} more`)}
+      </button>
+    `;
+    list.appendChild(card);
+  });
+}
+
+const ITEM_DESCS = {
+  succulent_plant: 'A plump little jade succulent that brings quiet green calm.',
+  aromatherapy_candle: 'A gentle flame releasing calming lavender scent into the air.',
+  cozy_tea_cup: 'A steaming ceramic mug of soothing herbal tea with honey.',
+  sleeping_cat: "A curled-up soft kitten whose rhythmic purrs melt away stress.",
+  fairy_lights: 'Soft glowing string lights casting a dreamy golden radiance.',
+  stack_of_books: 'A peaceful stack of comforting stories with a silk bookmark.',
+  bonsai_tree: 'A miniature sculpted tree that anchors the mind in the present.',
+  record_player: 'Spins warm vinyl grooves playing soft lo-fi chillout beats.',
+  warm_floor_lamp: 'A minimalist brass floor lamp illuminating peaceful evenings.',
+  plush_cushion: 'An irresistibly squishy cushion made for deep relaxation.',
+  crystal_geode: 'A deep purple healing crystal radiating serene vibrations.',
+  herbal_terrarium: 'A glass bell dome sheltering living green moss and tiny mushrooms.',
+};
+function getItemDesc(id) { return ITEM_DESCS[id] || ''; }
+
+function buyItem(id) {
+  const item = DIORAMA_CATALOG.find(x => x.id === id);
+  if (!item || state.unlockedItems.includes(id)) return;
+  if (!spendPoints(item.cost)) return;
+  state.unlockedItems.push(id);
+  incrementTask('unlock_item', 1);
+  playSparkle();
+  playChime(5);
+  showCelebration();
+  buildShop();
+  drawDiorama();
+}
+
+// ============================================================
+// 6. DAILY TASKS
+// ============================================================
+const DAILY_TASKS = [
+  { id:'pop_25', title:'Mindful Pop', desc:'Pop 25 bubbles', goal:25, reward:50, icon:'🫧' },
+  { id:'pop_100', title:'Bubble Zen', desc:'Pop 100 bubbles total', goal:100, reward:100, icon:'💯' },
+  { id:'clear_sheet', title:'Clean Slate', desc:'Clear an entire bubble sheet', goal:1, reward:75, icon:'📋' },
+  { id:'wipe_surface', title:'Gentle Polish', desc:'Wipe a surface 100% clean', goal:1, reward:75, icon:'🧽' },
+  { id:'breathe_2', title:'Calm Breath', desc:'Complete 2 breathing cycles', goal:2, reward:100, icon:'🧘' },
+  { id:'unlock_item', title:'Cozy Space', desc:'Unlock a cozy decoration', goal:1, reward:120, icon:'🎁' },
+];
+
+function incrementTask(id, n) {
+  state.taskProgress[id] = (state.taskProgress[id] || 0) + n;
+}
+
+function buildTasks() {
+  const list = document.getElementById('tasksList');
+  list.innerHTML = '';
+  DAILY_TASKS.forEach(task => {
+    const progress = state.taskProgress[task.id] || 0;
+    const complete = progress >= task.goal;
+    const claimed = state.claimedTasks.includes(task.id);
+    const pct = Math.min(100, progress / task.goal * 100);
+    const card = document.createElement('div');
+    card.className = 'task-card';
+    card.innerHTML = `
+      <div class="task-icon">${task.icon}</div>
+      <div class="task-info">
+        <div class="tname">${task.title}</div>
+        <div class="tdesc">${task.desc}</div>
+        <div class="progress-bar"><div class="fill" style="width:${pct}%"></div></div>
+        <div style="font-size:12px;color:var(--muted)">${Math.min(progress, task.goal)} / ${task.goal}</div>
+      </div>
+      <button class="btn ${claimed ? 'btn-secondary' : 'btn-primary'}"
+        ${!complete || claimed ? 'disabled' : ''}
+        onclick="claimTask('${task.id}')">
+        ${claimed ? '✓ Claimed' : (complete ? `Claim (+${task.reward})` : 'In Progress')}
+      </button>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function claimTask(id) {
+  const task = DAILY_TASKS.find(t => t.id === id);
+  if (!task || state.claimedTasks.includes(id)) return;
+  state.claimedTasks.push(id);
+  addPoints(task.reward);
+  playSparkle();
+  playChime(4);
+  showCelebration();
+  buildTasks();
+}
+
+// ============================================================
+// CELEBRATION CONFETTI
+// ============================================================
+function showCelebration() {
+  const el = document.getElementById('celebration');
+  const colors = ['#F4A261','#E76F51','#2A9D8F','#E9C46A','#E0AAFF','#84A98C','#FFCAD4'];
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.cssText = `
+      left: ${Math.random()*100}%;
+      top: -10px;
+      background: ${colors[i % colors.length]};
+      animation-delay: ${Math.random()*0.5}s;
+      animation-duration: ${1 + Math.random()}s;
+      transform: rotate(${Math.random()*360}deg);
+    `;
+    el.appendChild(piece);
+    setTimeout(() => piece.remove(), 2000);
+  }
+}
+
+// ============================================================
+// SETTINGS (toggles directly on the bottom)
+// ============================================================
+// We fold settings into the top bar gear button
+document.querySelector('.topbar .pts').addEventListener('click', () => {
+  // Quick toggle SFX on tap of points badge (easter egg)
+});
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  initBubbleSheet();
+  initWipe();
+  initBreathe();
+  animDiorama();
+  buildShop();
+  buildTasks();
+});
+</script>
+</body>
+</html>

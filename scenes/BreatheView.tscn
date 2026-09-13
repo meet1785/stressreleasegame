@@ -1,0 +1,79 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/BreatheView.gd" id="1_bvview"]
+
+[node name="BreatheView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bvview")
+
+[node name="Header" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 20.0
+offset_right = -40.0
+offset_bottom = 160.0
+grow_horizontal = 2
+theme_override_constants/separation = 10
+
+[node name="PhaseLabel" type="Label" parent="Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Inhale"
+horizontal_alignment = 1
+
+[node name="InstructionLabel" type="Label" parent="Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Breathe in deeply... fill your chest with calm"
+horizontal_alignment = 1
+
+[node name="CounterLabel" type="Label" parent="Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Mindful Breaths: 0 (+10 pts each)"
+horizontal_alignment = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -250.0
+offset_right = 250.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BreathCircle" type="Control" parent="CenterContainer"]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 2
+
+[node name="BottomControls" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = -140.0
+offset_right = -60.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="ToggleButton" type="Button" parent="BottomControls"]
+custom_minimum_size = Vector2(240, 70)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Pause Breath"
